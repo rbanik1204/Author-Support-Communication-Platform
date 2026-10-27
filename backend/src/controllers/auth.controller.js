@@ -1,4 +1,4 @@
-export function handleUserRegister(req, res, next) {
+export function handleUserRegister(err, req, res, next) {
   return res.json({
     success: true,
     message: "End point connected!",

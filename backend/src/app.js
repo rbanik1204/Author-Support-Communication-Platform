@@ -1,8 +1,10 @@
 import express from "express"
 import path from "path"
 import { fileURLToPath } from "url"
+import cookieParser from "cookie-parser"
 import { logger } from "./middlewares/logger.middleware.js"
 import { globalError } from "./middlewares/globalError.middleware.js"
+import { router as homeRouter } from "./routes/home.routes.js"
 import { router as authRouter } from "./routes/auth.routes.js"
 import dotenv from "dotenv"
 dotenv.config()
@@ -16,8 +18,10 @@ const __dirname = path.dirname(__filename) //gives the exact path by stripping f
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
+app.use(cookieParser())
+
 //routes
 app.use("/api", authRouter)
-
+app.use("/", homeRouter)
 app.use(globalError)
 export default app
