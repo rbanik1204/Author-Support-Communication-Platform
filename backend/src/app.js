@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 
 //routes
-app.use("/api", authRouter)
+app.use("/auth", authRouter)
 app.use("/", homeRouter)
 app.use(globalError)
 export default app
