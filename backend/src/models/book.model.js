@@ -35,7 +35,7 @@ const bookSchema = new mongoose.Schema(
 
     publication_date: {
       type: Date,
-      required: true,
+      default: null,
     },
 
     status: {
@@ -43,27 +43,27 @@ const bookSchema = new mongoose.Schema(
       required: true,
       enum: [
         "Manuscript Received",
-        "In Production - Editing (if opted)",
-        "InCover Design",
-        "In Production - Typesetting",
-        "In Production - Proofreading",
-        "In Production - ISBN Assignment",
-        "In Production - Printing",
-        "In Production - Distribution Setup",
+        "Editing (if opted)",
+        "Cover Design",
+        "Typesetting",
+        "Proofreading",
+        "ISBN Assignment",
+        "Printing",
+        "Distribution Setup",
         "Published & Live",
       ],
     },
 
     mrp: {
       type: Number,
-      required: true,
       min: 0,
+      default: null,
     },
 
     author_royalty_per_copy: {
       type: Number,
-      required: true,
       min: 0,
+      default: null,
     },
 
     total_copies_sold: {
@@ -96,15 +96,22 @@ const bookSchema = new mongoose.Schema(
 
     last_royalty_payout_date: {
       type: Date,
+      default: null,
     },
 
     print_partner: {
       type: String,
       trim: true,
+      default: null,
     },
 
     available_on: {
-      type: [String],
+      type: [
+        {
+          type: String,
+          trim: true,
+        },
+      ],
       default: [],
     },
   },
