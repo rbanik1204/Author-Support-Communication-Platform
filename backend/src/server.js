@@ -12,6 +12,7 @@ const startServer = async () => {
       console.log("Server running on port: " + PORT)
     })
   } catch (error) {
+    disconnectMongoDB(process.env.MONGO_URI)
     console.error("Server startup failed:", error)
     process.exit(1)
   }
