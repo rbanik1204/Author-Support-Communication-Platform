@@ -7,7 +7,9 @@ import { globalError } from "./middlewares/globalError.middleware.js"
 import { router as homeRouter } from "./routes/home.routes.js"
 import { router as authRouter } from "./routes/auth.routes.js"
 import dotenv from "dotenv"
-dotenv.config()
+dotenv.config({
+  path: `${process.env.NODE_ENV}` || development,
+})
 const app = express()
 //custom middleware for HTTP method, route logging
 app.use(logger)
