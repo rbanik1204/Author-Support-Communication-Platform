@@ -30,7 +30,7 @@ const seedDatabase = async () => {
       throw new Error("Dataset does not contain a valid authors array")
     }
 
-    await connectMongoDB(process.env.MONGO_URI)
+    await connectMongoDB(`${process.env.MONGO_URI}/bookleaf`)
 
     const bookOperations = []
 
@@ -129,7 +129,7 @@ const seedDatabase = async () => {
     console.error("Database seeding failed:", error)
     process.exitCode = 1
   } finally {
-    await disconnectMongoDB(process.env.MONGO_URI)
+    await disconnectMongoDB(`${process.env.MONGO_URI}/bookleaf`)
   }
 }
 

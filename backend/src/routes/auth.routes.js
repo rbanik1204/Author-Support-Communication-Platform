@@ -5,6 +5,5 @@ import {
 } from "../controllers/auth.controller.js"
 const router = express.Router()
 
-router.get("/login", handleUserLogin).post("/register", handleUserRegister)
-
+router.post("/login", handleUserLogin)
 export { router }
