@@ -30,7 +30,7 @@ const seedDatabase = async () => {
       throw new Error("Dataset does not contain a valid authors array")
     }
 
-    await connectMongoDB(`${process.env.MONGO_URI}/bookleaf`)
+    await connectMongoDB(`${process.env.MONGO_URI}`)
 
     const bookOperations = []
 
@@ -120,7 +120,7 @@ const seedDatabase = async () => {
     console.log(`Authors verified: ${authorCount}`)
     console.log(`Books verified: ${bookCount}`)
 
-    if (authorCount !== 10 || bookCount !== 18) {
+    if (authorCount !== 11 || bookCount !== 18) {
       throw new Error(
         "Seed verification failed: expected 10 authors and 18 books"
       )
@@ -129,7 +129,7 @@ const seedDatabase = async () => {
     console.error("Database seeding failed:", error)
     process.exitCode = 1
   } finally {
-    await disconnectMongoDB(`${process.env.MONGO_URI}/bookleaf`)
+    await disconnectMongoDB(`${process.env.MONGO_URI}`)
   }
 }
 

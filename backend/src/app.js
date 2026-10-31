@@ -22,7 +22,6 @@ app.use(express.urlencoded({ extended: false }))
 
 app.use(cookieParser())
 app.set("trust proxy", 1)
-app.use(sessionMiddleware)
 //CORS
 const allowedOrigins = [
   "http://localhost:5174",
@@ -38,6 +37,7 @@ app.use(
     credentials: true,
   })
 )
+app.use(sessionMiddleware)
 
 //routes
 app.use("/auth", authRouter)

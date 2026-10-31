@@ -75,3 +75,57 @@ export const handleUserLogin = async (req, res, next) => {
     next(error)
   }
 }
+
+export const handleGetMe = async (req, res, next) => {
+  try {
+    const sessionUser = req.session?.user
+
+    if (!sessionUser) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated",
+      })
+    }
+
+    const user = await User.findById(sessionUser.id).select(
+      "_id name email role"
+    )
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User no longer exists",
+      })
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const handleUserLogout = (req, res, next) => {
+  req.session.destroy((err) => {
+    if (err) return next(err)
+
+    res.clearCookie("bookleaf.sid", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+    })
+
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful",
+    })
+  })
+}
