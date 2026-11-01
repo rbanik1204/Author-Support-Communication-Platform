@@ -1,5 +1,5 @@
-import { Link, useLoaderData } from "react-router"
-
+import { Link, useLoaderData, useRevalidator } from "react-router"
+import { useEffect } from "react"
 const statusStyles = {
   Open: "bg-blue-100 text-blue-700",
   "In Progress": "bg-yellow-100 text-yellow-700",
@@ -29,8 +29,17 @@ const formatDate = (date) => {
 const isImage = (mimeType) => ["image/jpeg", "image/png"].includes(mimeType)
 
 export default function TicketDetails() {
-  const { ticket, messages } = useLoaderData()
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (revalidator.state === "idle") {
+        revalidator.revalidate()
+      }
+    }, 5000)
 
+    return () => clearInterval(intervalId)
+  }, [revalidator])
+  const { ticket, messages } = useLoaderData()
+  const revalidator = useRevalidator()
   return (
     <div className="max-w-5xl mx-auto p-6">
       {/* BACK NAVIGATION */}

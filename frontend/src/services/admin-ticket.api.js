@@ -110,3 +110,24 @@ export const createAdminMessageAPI = async (ticketId, content, type) => {
 
   return data
 }
+
+// POST: Generate AI response draft
+export const generateAdminTicketDraftAPI = async (ticketId) => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/admin/tickets/${ticketId}/draft`,
+    {
+      method: "POST",
+      credentials: "include",
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || data.error || "Failed to generate AI draft."
+    )
+  }
+
+  return data
+}

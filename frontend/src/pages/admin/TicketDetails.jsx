@@ -1,9 +1,16 @@
-import { useLoaderData, useFetcher, Link } from "react-router"
-
-import { useState } from "react"
-
+import { useLoaderData, useFetcher, useRevalidator, Link } from "react-router"
+import { useState, useEffect } from "react"
 const STATUSES = ["Open", "In Progress", "Resolved", "Closed"]
+const CATEGORIES = [
+  "Royalty & Payments",
+  "ISBN & Metadata Issues",
+  "Printing & Quality",
+  "Distribution & Availability",
+  "Book Status & Production Updates",
+  "General Inquiry",
+]
 
+const PRIORITIES = ["Critical", "High", "Medium", "Low"]
 const statusStyles = {
   Open: "bg-blue-100 text-blue-700",
   "In Progress": "bg-purple-100 text-purple-700",
@@ -17,20 +24,53 @@ function formatDate(date) {
 
 export default function TicketDetails() {
   const { ticket, messages = [] } = useLoaderData()
-
+  const revalidator = useRevalidator()
+  const draftFetcher = useFetcher()
   const statusFetcher = useFetcher()
   const assignFetcher = useFetcher()
   const replyFetcher = useFetcher()
   const noteFetcher = useFetcher()
-
-  const [reply, setReply] = useState("")
+  const classificationFetcher = useFetcher()
+  const [category, setCategory] = useState(ticket.category)
+  const [priority, setPriority] = useState(ticket.priority)
+  const [reply, setReply] = useState(ticket.aiDraft || "")
   const [note, setNote] = useState("")
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (revalidator.state === "idle") {
+        revalidator.revalidate()
+      }
+    }, 5000)
 
+    return () => clearInterval(intervalId)
+  }, [revalidator])
+  useEffect(() => {
+    if (
+      draftFetcher.state === "idle" &&
+      draftFetcher.data?.success &&
+      draftFetcher.data.draft
+    ) {
+      setReply(draftFetcher.data.draft)
+    }
+  }, [draftFetcher.state, draftFetcher.data])
+  useEffect(() => {
+    if (
+      classificationFetcher.state === "idle" &&
+      classificationFetcher.data?.success
+    ) {
+      const updated = classificationFetcher.data.classification
+
+      setCategory(updated.category)
+      setPriority(updated.priority)
+    }
+  }, [classificationFetcher.state, classificationFetcher.data])
   const busy =
+    classificationFetcher.state !== "idle" ||
     statusFetcher.state !== "idle" ||
     assignFetcher.state !== "idle" ||
     replyFetcher.state !== "idle" ||
-    noteFetcher.state !== "idle"
+    noteFetcher.state !== "idle" ||
+    draftFetcher.state !== "idle"
 
   const handleSubmit = (event, fetcher, intent) => {
     event.preventDefault()
@@ -103,25 +143,95 @@ export default function TicketDetails() {
         </div>
 
         <div className="rounded-xl border bg-white p-5">
-          <h2 className="font-semibold text-gray-900">Ticket Information</h2>
+          <h2 className="font-semibold text-gray-900">Ticket Classification</h2>
 
-          <div className="mt-4 space-y-2 text-sm">
-            <p>
-              <span className="text-gray-500">Category: </span>
-              {ticket.category}
-            </p>
+          <p className="mt-1 text-xs text-gray-500">
+            Review and override AI-generated classification.
+          </p>
 
-            <p>
-              <span className="text-gray-500">Priority: </span>
-              {ticket.priority}
-            </p>
+          <classificationFetcher.Form
+            method="post"
+            onSubmit={(event) =>
+              handleSubmit(
+                event,
+                classificationFetcher,
+                "update-classification"
+              )
+            }
+            className="mt-4 space-y-4"
+          >
+            <div>
+              <label className="mb-2 block text-sm font-medium">Category</label>
 
+              <select
+                name="category"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+              >
+                {CATEGORIES.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+
+              <p className="mt-1 text-xs text-gray-500">
+                Source: {ticket.categorySource || "default"}
+              </p>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium">Priority</label>
+
+              <select
+                name="priority"
+                value={priority}
+                onChange={(event) => setPriority(event.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+              >
+                {PRIORITIES.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+
+              <p className="mt-1 text-xs text-gray-500">
+                Source: {ticket.prioritySource || "default"}
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {classificationFetcher.state !== "idle"
+                ? "Saving..."
+                : "Save Classification"}
+            </button>
+
+            {classificationFetcher.data?.success && (
+              <p className="text-sm text-green-700">
+                Classification updated successfully.
+              </p>
+            )}
+
+            {classificationFetcher.data?.error && (
+              <p className="text-sm text-red-600">
+                {classificationFetcher.data.error}
+              </p>
+            )}
+          </classificationFetcher.Form>
+
+          <div className="mt-4 border-t pt-3 text-sm">
             <p>
               <span className="text-gray-500">Book: </span>
               {ticket.book?.title || "General inquiry"}
             </p>
 
-            <p>
+            <p className="mt-2">
               <span className="text-gray-500">Assigned to: </span>
               {ticket.assignedTo?.name || "Unassigned"}
             </p>
@@ -252,7 +362,45 @@ export default function TicketDetails() {
 
       {/* Public reply */}
       <div className="rounded-xl border bg-white p-5">
-        <h2 className="font-semibold text-gray-900">Reply to author</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold text-gray-900">Reply to author</h2>
+
+            <p className="mt-1 text-xs text-gray-500">
+              Generate an AI suggestion, review it and edit before sending.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              const formData = new FormData()
+              formData.set("intent", "generate-draft")
+
+              draftFetcher.submit(formData, {
+                method: "post",
+              })
+            }}
+            className="rounded-lg border border-purple-600 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 disabled:opacity-50"
+          >
+            {draftFetcher.state !== "idle"
+              ? "Generating..."
+              : reply
+                ? "Regenerate AI Draft"
+                : "Generate AI Draft"}
+          </button>
+        </div>
+
+        {draftFetcher.data?.error && (
+          <p className="mt-3 text-sm text-red-600">{draftFetcher.data.error}</p>
+        )}
+
+        {draftFetcher.data?.success && (
+          <p className="mt-3 text-sm text-green-700">
+            AI draft generated successfully. Review it before sending.
+          </p>
+        )}
 
         <form
           className="mt-4 space-y-3"

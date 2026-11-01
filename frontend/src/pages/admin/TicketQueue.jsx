@@ -36,6 +36,8 @@ export default function TicketQueue() {
 
   const page = Number(searchParams.get("page") || 1)
 
+  const fromDate = searchParams.get("fromDate") || ""
+  const toDate = searchParams.get("toDate") || ""
   useEffect(() => {
     const timeout = setTimeout(() => {
       const next = new URLSearchParams(searchParams)
@@ -153,6 +155,21 @@ export default function TicketQueue() {
             </option>
           ))}
         </select>
+        <input
+          type="date"
+          value={fromDate}
+          max={toDate || undefined}
+          onChange={(event) => updateFilter("fromDate", event.target.value)}
+          className="rounded-lg border px-3 py-2 text-sm"
+        />
+
+        <input
+          type="date"
+          value={toDate}
+          min={fromDate || undefined}
+          onChange={(event) => updateFilter("toDate", event.target.value)}
+          className="rounded-lg border px-3 py-2 text-sm"
+        />
       </div>
 
       <div className="overflow-hidden rounded-xl border bg-white">

@@ -4,6 +4,7 @@ import {
   updateTicketStatusAPI,
   assignTicketToSelfAPI,
   createAdminMessageAPI,
+  generateAdminTicketDraftAPI,
 } from "../services/admin-ticket.api.js"
 
 // UPDATE TICKET STATUS
@@ -153,7 +154,15 @@ export const adminTicketAction = async ({ request, params }) => {
           message: "Internal note added successfully.",
         }
       }
+      case "generate-draft": {
+        const result = await generateAdminTicketDraftAPI(params.ticketId)
 
+        return {
+          success: true,
+          message: result.message,
+          draft: result.data.draft,
+        }
+      }
       default:
         return { error: "Invalid admin ticket action." }
     }
