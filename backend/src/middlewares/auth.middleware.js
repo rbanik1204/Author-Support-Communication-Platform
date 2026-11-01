@@ -1,5 +1,5 @@
 export const requireAuth = (req, res, next) => {
-  if (!req.session?.user?.id) {
+  if (!req.session?.user?._id) {
     return res.status(401).json({
       success: false,
       message: "Authentication required. Please log in.",
@@ -11,7 +11,7 @@ export const requireAuth = (req, res, next) => {
 
 export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!req.session?.user?.id) {
+    if (!req.session?.user?._id) {
       return res.status(401).json({
         success: false,
         message: "Authentication required. Please log in.",

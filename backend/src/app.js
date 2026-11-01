@@ -11,6 +11,7 @@ import { router as authRouter } from "./routes/auth.routes.js"
 import { router as bookRouter } from "./routes/book.routes.js"
 import { router as ticketRouter } from "./routes/ticket.routes.js"
 import { router as adminTicketRouter } from "./routes/admin.ticket.routes.js"
+import { router as adminAuthorRouter } from "./routes/admin.author.routes.js"
 const app = express()
 
 //custom middleware for HTTP method, route logging
@@ -42,11 +43,14 @@ app.use(
 )
 app.use(sessionMiddleware)
 
-//routes
+// routes
 app.use("/auth", authRouter)
 app.use("/api/books", bookRouter)
 app.use("/api/tickets", ticketRouter)
+
 app.use("/api/admin/tickets", adminTicketRouter)
+app.use("/api/admin/authors", adminAuthorRouter)
+
 app.use("/", homeRouter)
 app.use(globalError)
 export default app

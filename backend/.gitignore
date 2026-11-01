@@ -2,3 +2,4 @@ node_modules/
 .env.production
 .env.development
 client-auth-secret.json
+scripts/demo-credentials.json
