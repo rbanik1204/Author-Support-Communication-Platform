@@ -7,7 +7,59 @@
       "phone": null,
       "city": "Chinsurah",
       "joined_date": "2026-10-31",
-      "books": []
+      "books": [
+        {
+          "book_id": "BK019",
+          "title": "The Architecture of Tomorrow",
+          "isbn": "978-93-5XXXX-19-6",
+          "genre": "Technology / Science Fiction",
+          "publication_date": "2026-06-15",
+          "status": "Published & Live",
+          "mrp": 499,
+          "author_royalty_per_copy": 75,
+          "total_copies_sold": 120,
+          "total_royalty_earned": 9000,
+          "royalty_paid": 6000,
+          "royalty_pending": 3000,
+          "last_royalty_payout_date": "2026-09-15",
+          "print_partner": "In-House",
+          "available_on": ["Amazon India", "Flipkart", "BookLeaf Store"]
+        },
+        {
+          "book_id": "BK020",
+          "title": "Beyond the Binary",
+          "isbn": "978-93-5XXXX-20-2",
+          "genre": "Technology / Non-Fiction",
+          "publication_date": "2026-08-20",
+          "status": "Published & Live",
+          "mrp": 399,
+          "author_royalty_per_copy": 60,
+          "total_copies_sold": 85,
+          "total_royalty_earned": 5100,
+          "royalty_paid": 5100,
+          "royalty_pending": 0,
+          "last_royalty_payout_date": "2026-10-01",
+          "print_partner": "Repro India",
+          "available_on": ["Amazon India", "BookLeaf Store"]
+        },
+        {
+          "book_id": "BK021",
+          "title": "The Last Commit",
+          "isbn": "978-93-5XXXX-21-9",
+          "genre": "Thriller / Fiction",
+          "publication_date": null,
+          "status": "In Production - Cover Design",
+          "mrp": null,
+          "author_royalty_per_copy": null,
+          "total_copies_sold": 0,
+          "total_royalty_earned": 0,
+          "royalty_paid": 0,
+          "royalty_pending": 0,
+          "last_royalty_payout_date": null,
+          "print_partner": null,
+          "available_on": []
+        }
+      ]
     },
     {
       "author_id": "AUTH001",

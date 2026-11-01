@@ -120,7 +120,7 @@ const seedDatabase = async () => {
     console.log(`Authors verified: ${authorCount}`)
     console.log(`Books verified: ${bookCount}`)
 
-    if (authorCount !== 11 || bookCount !== 18) {
+    if (authorCount !== 11 || bookCount !== 21) {
       throw new Error(
         "Seed verification failed: expected 10 authors and 18 books"
       )

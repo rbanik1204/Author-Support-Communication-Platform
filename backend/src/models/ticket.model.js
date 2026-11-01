@@ -95,6 +95,10 @@ const ticketSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    lastActivityAt: {
+      type: Date,
+      default: Date.now,
+    },
 
     resolvedAt: {
       type: Date,

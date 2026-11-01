@@ -8,6 +8,9 @@ import { logger } from "./middlewares/logger.middleware.js"
 import { globalError } from "./middlewares/globalError.middleware.js"
 import { router as homeRouter } from "./routes/home.routes.js"
 import { router as authRouter } from "./routes/auth.routes.js"
+import { router as bookRouter } from "./routes/book.routes.js"
+import { router as ticketRouter } from "./routes/ticket.routes.js"
+import { router as adminTicketRouter } from "./routes/admin.ticket.routes.js"
 const app = express()
 
 //custom middleware for HTTP method, route logging
@@ -41,6 +44,9 @@ app.use(sessionMiddleware)
 
 //routes
 app.use("/auth", authRouter)
+app.use("/api/books", bookRouter)
+app.use("/api/tickets", ticketRouter)
+app.use("/api/admin/tickets", adminTicketRouter)
 app.use("/", homeRouter)
 app.use(globalError)
 export default app

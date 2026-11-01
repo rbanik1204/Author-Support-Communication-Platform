@@ -10,7 +10,7 @@ export function handleUserRegister(req, res, next) {
 export const handleUserLogin = async (req, res, next) => {
   try {
     const { credential } = req.body
-
+    console.log(credential)
     if (!credential) {
       return res.status(400).json({
         success: false,
