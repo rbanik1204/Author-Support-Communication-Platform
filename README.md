@@ -314,25 +314,55 @@ erDiagram
 
 The application uses session-based authentication.
 
-### Authentication flow
+## Author Account Onboarding & Authentication
 
-1. The frontend submits authentication information.
-2. The backend validates the credentials or supported Google authentication flow.
-3. The authenticated user is established in the session.
-4. The session is persisted using MongoDB session storage.
-5. The browser receives the session cookie.
-6. Subsequent requests include the cookie.
-7. Authentication middleware identifies the current user.
+BookLeaf supports role-based authentication for both Authors and Administrators.
 
-### Authentication endpoints
+### Authentication Methods
 
-All authentication endpoints are mounted under `/auth`.
+- **Email & Password:** Users authenticate using their registered email address and password.
+- **Google OAuth:** Existing Google Sign-In support is available for linked accounts.
+- **Session Management:** Express sessions maintain authenticated user state across requests.
 
-| Method | Endpoint       | Description                             |
-| ------ | -------------- | --------------------------------------- |
-| POST   | `/auth/login`  | Authenticate a user                     |
-| GET    | `/auth/me`     | Retrieve the current authenticated user |
-| POST   | `/auth/logout` | End the current session                 |
+### Author Onboarding
+
+Author accounts are provisioned through the database seeding process. Authors receive a password-setup invitation rather than registering publicly.
+
+The onboarding process works as follows:
+
+1. The seed script creates or updates author records using the supplied dataset.
+2. A unique, cryptographically generated invitation token is created for authors who have not set a password.
+3. Only the SHA-256 hash of the invitation token is stored in MongoDB.
+4. The invitation URL directs the author to the frontend password-setup page.
+5. The author submits a new password and confirmation.
+6. The backend validates the token, checks its expiration, hashes the password using bcrypt, and updates the author account.
+7. Once completed, the author can log in using their registered email and password.
+
+**Invitation security:**
+
+- Invitation tokens are generated using Node.js cryptographic randomness.
+- Tokens expire after 15 minutes.
+- Passwords must contain at least 12 characters.
+- Passwords are hashed using bcrypt before database storage.
+- Public author registration is not enabled.
+
+### Authentication API Endpoints
+
+| Method | Endpoint             | Description                                             |
+| ------ | -------------------- | ------------------------------------------------------- |
+| POST   | `/auth/login`        | Authenticate using email/password or Google credentials |
+| GET    | `/auth/me`           | Retrieve the currently authenticated user               |
+| POST   | `/auth/logout`       | Destroy the current session                             |
+| POST   | `/auth/set-password` | Set an author's password using an invitation token      |
+
+### Role-Based Access Control
+
+The application supports two roles:
+
+- **Author:** Can access their own books, tickets, and account information.
+- **Admin:** Can access the administrative dashboard, author directory, and support ticket management features.
+
+Protected routes use authentication and role-based authorization middleware to enforce access restrictions.
 
 ### Authorization
 
@@ -1813,4 +1843,3 @@ Potential improvements for a production-scale application include:
 - AI classification and response generation are backend responsibilities.
 - AI-generated replies require administrator review before being sent.
 - This project was developed as part of a confidential technical evaluation. The repository should remain private.
-
