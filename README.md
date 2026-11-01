@@ -323,7 +323,34 @@ BookLeaf supports role-based authentication for both Authors and Administrators.
 - **Email & Password:** Users authenticate using their registered email address and password.
 - **Google OAuth:** Existing Google Sign-In support is available for linked accounts.
 - **Session Management:** Express sessions maintain authenticated user state across requests.
+## Demo Credentials
 
+### Administrator Account
+
+The application includes a pre-seeded administrator account.
+
+| Field | Value |
+|---|---|
+| Email | `admin@bookleaf.demo` |
+| Password | Use the administrator password configured through `ADMIN_PASSWORD` in the backend environment variables |
+| Portal | `/admin` |
+
+**Administrator setup:**
+- Configure `ADMIN_NAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` in the backend `.env` file.
+- Run the database seed script to provision the administrator account.
+- The administrator password is hashed using bcrypt before storage.
+- The seed script does not overwrite an existing administrator's password on subsequent runs.
+
+### Author Accounts
+
+Author accounts are provisioned from the supplied sample dataset.
+
+- Authors receive password-setup invitations generated during database seeding.
+- Open an invitation link to configure an account password.
+- After password setup, log in using the author's registered email and newly configured password.
+- Authors are redirected to the `/author` portal after successful authentication.
+
+**Note:** Never commit actual passwords, invitation tokens, or environment files to the repository.
 ### Author Onboarding
 
 Author accounts are provisioned through the database seeding process. Authors receive a password-setup invitation rather than registering publicly.
