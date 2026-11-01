@@ -1,5 +1,6 @@
 import { redirect } from "react-router"
 import { googleLoginAPI } from "../services/auth.api"
+import { logoutAPI } from "../services/auth.api"
 
 export const googleLoginAction = async ({ request }) => {
   try {
@@ -15,15 +16,27 @@ export const googleLoginAction = async ({ request }) => {
 
     const result = await googleLoginAPI(credential)
 
+    if (!result.user?.role) {
+      throw new Error("Invalid authentication response")
+    }
+
     if (result.user.role === "admin") {
       return redirect("/admin")
     }
 
-    return redirect("/author")
+    if (result.user.role === "author") {
+      return redirect("/author")
+    }
+
+    throw new Error("Unsupported account role")
   } catch (error) {
     return {
       success: false,
       message: error.message || "Unable to login",
     }
   }
+}
+export const logoutAction = async () => {
+  await logoutAPI()
+  return redirect("/")
 }

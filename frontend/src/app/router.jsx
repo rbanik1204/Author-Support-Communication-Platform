@@ -38,12 +38,20 @@ const router = createBrowserRouter([
           }
         },
       },
+      {
+        path: "logout",
+        action: async () => {
+          const { logoutAction } = await import("../actions/auth.action")
+          return logoutAction()
+        },
+      },
 
       // ==================================
       // AUTHOR PORTAL
       // ==================================
 
       {
+        id: "author",
         path: "author",
 
         lazy: async () => {
@@ -168,6 +176,7 @@ const router = createBrowserRouter([
       // ==================================
 
       {
+        id: "admin",
         path: "admin",
 
         lazy: async () => {
@@ -235,7 +244,7 @@ const router = createBrowserRouter([
               ] = await Promise.all([
                 import("../pages/admin/TicketDetails"),
                 import("../loaders/ticket.loader"),
-                import("../actions/admin.action"),
+                import("../actions/admin-ticket.action"),
               ])
 
               return {
