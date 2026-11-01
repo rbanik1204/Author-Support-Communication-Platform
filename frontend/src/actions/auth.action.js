@@ -1,20 +1,31 @@
 import { redirect } from "react-router"
-import { googleLoginAPI } from "../services/auth.api"
-import { logoutAPI } from "../services/auth.api"
 
-export const googleLoginAction = async ({ request }) => {
+import {
+  googleLoginAPI,
+  passwordLoginAPI,
+  logoutAPI,
+} from "../services/auth.api"
+
+export const loginAction = async ({ request }) => {
   try {
     const formData = await request.formData()
-    const credential = formData.get("credential")
 
-    if (!credential) {
+    const credential = formData.get("credential")
+    const email = formData.get("email")
+    const password = formData.get("password")
+
+    let result
+
+    if (credential) {
+      result = await googleLoginAPI(credential)
+    } else if (email && password) {
+      result = await passwordLoginAPI(email, password)
+    } else {
       return {
         success: false,
-        message: "Google credential is required",
+        message: "Please provide your login credentials.",
       }
     }
-
-    const result = await googleLoginAPI(credential)
 
     if (!result.user?.role) {
       throw new Error("Invalid authentication response")
@@ -36,6 +47,7 @@ export const googleLoginAction = async ({ request }) => {
     }
   }
 }
+
 export const logoutAction = async () => {
   await logoutAPI()
   return redirect("/")

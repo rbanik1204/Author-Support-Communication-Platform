@@ -1,8 +1,7 @@
 import { GoogleLogin } from "@react-oauth/google"
-import { useActionData, useNavigation, useSubmit } from "react-router"
+import { Form, useActionData, useNavigation, useSubmit } from "react-router"
 
 export default function Login() {
-  //use useSubmit, which submits data to the current route's action.
   const submit = useSubmit()
   const actionData = useActionData()
   const navigation = useNavigation()
@@ -11,6 +10,8 @@ export default function Login() {
 
   const handleGoogleSuccess = (credentialResponse) => {
     const credential = credentialResponse.credential
+
+    if (!credential) return
 
     const formData = new FormData()
     formData.append("credential", credential)
@@ -29,6 +30,38 @@ export default function Login() {
     <div>
       <h1>Welcome to BookLeaf</h1>
 
+      <Form method="post">
+        <div>
+          <label htmlFor="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Enter your email"
+            autoComplete="email"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            autoComplete="current-password"
+            required
+          />
+        </div>
+
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </button>
+      </Form>
+
+      <p>OR</p>
+
       <GoogleLogin
         onSuccess={handleGoogleSuccess}
         onError={handleGoogleError}
@@ -36,7 +69,7 @@ export default function Login() {
 
       {isSubmitting && <p>Signing you in...</p>}
 
-      {actionData?.message && <p>{actionData.message}</p>}
+      {actionData?.message && <p role="alert">{actionData.message}</p>}
     </div>
   )
 }

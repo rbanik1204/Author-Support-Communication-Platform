@@ -19,6 +19,25 @@ export const googleLoginAPI = async (credential) => {
   return data
 }
 
+export const passwordLoginAPI = async (email, password) => {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.message || "Email/password login failed")
+  }
+
+  return data
+}
+
 export const getCurrentUserAPI = async () => {
   const response = await fetch(`${API_URL}/auth/me`, {
     method: "GET",
@@ -44,6 +63,24 @@ export const logoutAPI = async () => {
 
   if (!response.ok) {
     throw new Error(data.message || "Logout failed")
+  }
+
+  return data
+}
+export const setPasswordAPI = async (token, password) => {
+  const response = await fetch(`${API_URL}/auth/set-password`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token, password }),
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.message || "Unable to set password")
   }
 
   return data

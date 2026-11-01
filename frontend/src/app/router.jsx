@@ -24,7 +24,7 @@ const router = createBrowserRouter([
         index: true,
 
         lazy: async () => {
-          const [{ default: Login }, { googleLoginAction }, { loginLoader }] =
+          const [{ default: Login }, { loginAction }, { loginLoader }] =
             await Promise.all([
               import("../routes/auth/Login"),
               import("../actions/auth.action"),
@@ -33,7 +33,7 @@ const router = createBrowserRouter([
 
           return {
             Component: Login,
-            action: googleLoginAction,
+            action: loginAction,
             loader: loginLoader,
           }
         },
@@ -43,6 +43,18 @@ const router = createBrowserRouter([
         action: async () => {
           const { logoutAction } = await import("../actions/auth.action")
           return logoutAction()
+        },
+      },
+      {
+        path: "set-password",
+
+        lazy: async () => {
+          const { default: SetPassword } =
+            await import("../routes/auth/SetPassword")
+
+          return {
+            Component: SetPassword,
+          }
         },
       },
 
