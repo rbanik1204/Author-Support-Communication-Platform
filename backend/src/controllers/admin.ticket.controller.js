@@ -2,7 +2,7 @@ import Ticket from "../models/ticket.model.js"
 import User from "../models/user.model.js"
 import mongoose from "mongoose"
 import Message from "../models/message.model.js"
-
+import { generateTicketDraft } from "../services/ai-response-draft.service.js"
 const TICKET_STATUSES = ["Open", "In Progress", "Resolved", "Closed"]
 
 const TICKET_CATEGORIES = [
@@ -22,7 +22,7 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 export const handleGetAdminTickets = async (req, res, next) => {
   try {
     // 1. Read query parameters.
-    const { status, category, priority, search } = req.query
+    const { status, category, priority, search, fromDate, toDate } = req.query
 
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1)
 
@@ -54,14 +54,60 @@ export const handleGetAdminTickets = async (req, res, next) => {
         message: "Invalid ticket priority filter.",
       })
     }
+    // Validate date format (YYYY-MM-DD).
+    const isValidDate = (value) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return false
+      }
 
+      const date = new Date(`${value}T00:00:00.000Z`)
+
+      return (
+        !Number.isNaN(date.getTime()) &&
+        date.toISOString().slice(0, 10) === value
+      )
+    }
+
+    if (fromDate && !isValidDate(fromDate)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid fromDate. Expected YYYY-MM-DD.",
+      })
+    }
+
+    if (toDate && !isValidDate(toDate)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid toDate. Expected YYYY-MM-DD.",
+      })
+    }
+
+    if (fromDate && toDate && fromDate > toDate) {
+      return res.status(400).json({
+        success: false,
+        message: "fromDate cannot be later than toDate.",
+      })
+    }
     // 3. Build database query.
     const filter = {}
 
     if (status) filter.status = status
     if (category) filter.category = category
     if (priority) filter.priority = priority
+    // Filter tickets by creation date.
+    if (fromDate || toDate) {
+      filter.createdAt = {}
 
+      if (fromDate) {
+        filter.createdAt.$gte = new Date(`${fromDate}T00:00:00.000Z`)
+      }
+
+      if (toDate) {
+        filter.createdAt.$lt = new Date(
+          new Date(`${toDate}T00:00:00.000Z`).getTime() + 24 * 60 * 60 * 1000
+        )
+      }
+    }
     // 4. Search subject, author name and email.
     if (search?.trim()) {
       const searchRegex = new RegExp(escapeRegex(search.trim()), "i")
@@ -455,5 +501,174 @@ export const handleCreateAdminMessage = async (req, res, next) => {
     next(error)
   } finally {
     await session.endSession()
+  }
+}
+export const handleGenerateTicketDraft = async (req, res, next) => {
+  try {
+    const { ticketId } = req.params
+
+    // 1. Validate ticket ID.
+    if (!mongoose.isValidObjectId(ticketId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ticket ID.",
+      })
+    }
+
+    // 2. Fetch ticket with author and book information.
+    const ticket = await Ticket.findById(ticketId)
+      .populate("author", "name email phone")
+      .populate(
+        "book",
+        "title isbn genre publication_date status royalty_pending royalty_paid total_royalty_earned"
+      )
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: "Ticket not found.",
+      })
+    }
+
+    // 3. Fetch public conversation only.
+    const messages = await Message.find({
+      ticket: ticketId,
+      visibility: "public",
+    })
+      .select("senderRole type content visibility createdAt")
+      .sort({ createdAt: 1 })
+      .lean()
+
+    // 4. Generate AI response draft.
+    const result = await generateTicketDraft({
+      ticket: ticket.toObject(),
+      messages,
+    })
+
+    if (!result.success) {
+      const statusCode =
+        result.status === "rate_limited"
+          ? 429
+          : result.status === "unavailable"
+            ? 503
+            : 502
+
+      return res.status(statusCode).json({
+        success: false,
+        message: "Unable to generate an AI response draft.",
+        error: result.error,
+        status: result.status,
+      })
+    }
+
+    // 5. Save generated draft without sending it.
+    ticket.aiDraft = result.draft
+    await ticket.save()
+
+    // 6. Return draft to admin.
+    return res.status(200).json({
+      success: true,
+      message: "AI response draft generated successfully.",
+      data: {
+        ticketId: ticket._id,
+        draft: result.draft,
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+export const handleUpdateTicketClassification = async (req, res, next) => {
+  try {
+    const { ticketId } = req.params
+    const updates = req.body ?? {}
+
+    // 1. Validate ticket ID.
+    if (!mongoose.isValidObjectId(ticketId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ticket ID.",
+      })
+    }
+
+    // 2. Allow only category and priority fields.
+    const allowedFields = ["category", "priority"]
+    const requestedFields = Object.keys(updates)
+
+    if (
+      requestedFields.length === 0 ||
+      requestedFields.some((field) => !allowedFields.includes(field))
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide a valid category and/or priority field.",
+      })
+    }
+
+    // 3. Validate category if supplied.
+    if (
+      Object.hasOwn(updates, "category") &&
+      !TICKET_CATEGORIES.includes(updates.category)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ticket category.",
+        allowedCategories: TICKET_CATEGORIES,
+      })
+    }
+
+    // 4. Validate priority if supplied.
+    if (
+      Object.hasOwn(updates, "priority") &&
+      !TICKET_PRIORITIES.includes(updates.priority)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ticket priority.",
+        allowedPriorities: TICKET_PRIORITIES,
+      })
+    }
+
+    // 5. Find ticket.
+    const ticket = await Ticket.findById(ticketId)
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: "Ticket not found.",
+      })
+    }
+
+    // 6. Apply only the fields supplied by the admin.
+    if (Object.hasOwn(updates, "category")) {
+      ticket.category = updates.category
+      ticket.categorySource = "admin"
+    }
+
+    if (Object.hasOwn(updates, "priority")) {
+      ticket.priority = updates.priority
+      ticket.prioritySource = "admin"
+    }
+
+    ticket.lastActivityAt = new Date()
+
+    // 7. Persist changes.
+    await ticket.save()
+
+    // 8. Return updated classification.
+    return res.status(200).json({
+      success: true,
+      message: "Ticket classification updated successfully.",
+      data: {
+        ticketId: ticket._id,
+        category: ticket.category,
+        categorySource: ticket.categorySource,
+        priority: ticket.priority,
+        prioritySource: ticket.prioritySource,
+        lastActivityAt: ticket.lastActivityAt,
+      },
+    })
+  } catch (error) {
+    next(error)
   }
 }

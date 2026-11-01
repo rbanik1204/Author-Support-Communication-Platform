@@ -6,6 +6,8 @@ import {
   handleUpdateTicketStatus,
   handleAssignTicketToSelf,
   handleCreateAdminMessage,
+  handleGenerateTicketDraft,
+  handleUpdateTicketClassification,
 } from "../controllers/admin.ticket.controller.js"
 
 const router = express.Router()
@@ -16,4 +18,10 @@ router
   .patch("/:ticketId/assign", requireRole("admin"), handleAssignTicketToSelf)
   .post("/:ticketId/messages", requireRole("admin"), handleCreateAdminMessage)
   .get("/:ticketId", requireRole("admin"), handleGetAdminTicketById)
+  .post("/:ticketId/draft", requireRole("admin"), handleGenerateTicketDraft)
+  .patch(
+    "/:ticketId/classification",
+    requireRole("admin"),
+    handleUpdateTicketClassification
+  )
 export { router }
